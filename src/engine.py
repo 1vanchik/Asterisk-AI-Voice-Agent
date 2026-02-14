@@ -4553,6 +4553,13 @@ class Engine:
             except Exception:
                 logger.debug("Pipeline cleanup failed", call_id=call_id, exc_info=True)
 
+            # Clear per-call resample states to prevent unbounded memory growth
+            self._resample_state_provider_in.pop(call_id, None)
+            self._resample_state_provider_out.pop(call_id, None)
+            self._resample_state_pipeline16k.pop(call_id, None)
+            self._resample_state_vad8k.pop(call_id, None)
+            self.audiosocket_resample_state.pop(call_id, None)
+
             # Clear detected codec preferences
             self.call_audio_preferences.pop(call_id, None)
 

@@ -27,6 +27,14 @@ logger = get_logger(__name__)
 _THINK_TAG_RE = re.compile(r"<think>.*?</think>\s*", flags=re.IGNORECASE | re.DOTALL)
 
 
+def _safe_float(value: Any, fallback: float) -> float:
+    """Convert *value* to float, returning *fallback* on failure (empty str, None, etc.)."""
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return float(fallback)
+
+
 def _strip_thinking(content: str) -> str:
     """
     Some Telnyx-hosted models (notably Qwen) may include chain-of-thought in `<think>...</think>`.
@@ -213,7 +221,7 @@ class TelnyxLLMAdapter(LLMComponent):
                 "max_tokens",
                 self._pipeline_defaults.get("max_tokens", getattr(self._provider_defaults, "max_tokens", None)),
             ),
-            "timeout_sec": float(runtime_options.get("timeout_sec", self._pipeline_defaults.get("timeout_sec", self._default_timeout))),
+            "timeout_sec": _safe_float(runtime_options.get("timeout_sec", self._pipeline_defaults.get("timeout_sec", self._default_timeout)), self._default_timeout),
             "tools": runtime_options.get("tools", self._pipeline_defaults.get("tools", [])),
         }
 
